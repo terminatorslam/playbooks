@@ -7,40 +7,41 @@
     proxmox_host: "192.168.1.20"
     username: root
     password: dedsec
+    api_token_id: "root@pam!ansible"
+    api_token_secret: "6e462d85-8e3a-40e6-81d9-eda6d8922559"
     vmid: 101
     node_name: "fed-node-01"
     memory: 4096
     cores: 12
     disk_size: 30G
     template_name: "fedora-40-default_20240909_amd64.tar.xz"  # Ensure this template is uploaded to Proxmox VE
-    os_type: l2m
+    os_type: l26  # Correct OS type for Linux
     start_vm: yes
 
   tasks:
-    - name: Ensure Proxmox PAM is enabled and configured for API access.
-      proxmoxve_host_info:
-        host: "{{ proxmox_host }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-
     - name: Create Fedora 40 VM
-      proxmoxve_vm_config:
-        host: "{{ proxmox_host }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
+      proxmox_vm_qemu:
+        api_host: "{{ proxmox_host }}"
+        api_user: "{{ username }}"
+        api_token_id: "{{ api_token_id }}"
+        api_token_secret: "{{ api_token_secret }}"
         vmid: "{{ vmid }}"
-        node_name: "{{ node_name }}"
+        node: "{{ node_name }}"
         memory: "{{ memory }}"
         cores: "{{ cores }}"
-        disk_size: "{{ disk_size }}"
-        template_name: "{{ template_name }}"
+        netif: '{"net0":"model=virtio,bridge=vmbr0"}'  # Example network config
+        ide2: "{{ template_name }},media=cdrom"  # Ensure the template is present
+        disk: "scsi0={{ disk_size }},format=qcow2"
         os_type: "{{ os_type }}"
+        start: "{{ start_vm | default(true) }}"
 
     - name: Start the VM if specified
-      proxmoxve_vm_config:
-        host: "{{ proxmox_host }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
+      proxmox_vm_qemu:
+        api_host: "{{ proxmox_host }}"
+        api_user: "{{ username }}"
+        api_token_id: "{{ api_token_id }}"
+        api_token_secret: "{{ api_token_secret }}"
         vmid: "{{ vmid }}"
-        action: start
+        node: "{{ node_name }}"
+        state: started
       when: start_vm | default(true)
