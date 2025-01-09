@@ -1,6 +1,6 @@
 ---
 - name: Automate Proxmox Instance
-  hosts: proxmox_host
+  hosts: proxmox
   gather_facts: no
   become: yes
 
