@@ -23,7 +23,7 @@
 
   tasks:
     - name: Create Fedora 40 VM
-      proxmox_vm_qemu:
+      proxmox_kvm:
         api_host: "{{ proxmox_host }}"
         api_user: "{{ username }}"
         api_token_id: "{{ api_token_id }}"
@@ -39,7 +39,7 @@
         start: "{{ start_vm | default(true) }}"
 
     - name: Start the VM if specified
-      proxmox_vm_qemu:
+      proxmox_kvm:
         api_host: "{{ proxmox_host }}"
         api_user: "{{ username }}"
         api_token_id: "{{ api_token_id }}"
