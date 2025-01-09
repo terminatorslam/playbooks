@@ -1,15 +1,15 @@
 - name: Proxmox stuff
-  hosts: all
+  hosts: proxmox
   vars:
-    name: ubuntu
+    name: fedora
   tasks:
     - set_fact:
-        yeppers: "ubuntu-{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}"
+        yeppers: "fedora-{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}"
     - proxmox_kvm:
-        api_user    : root@pam
-        api_password: PASSWORD
-        api_host    : 10.70.7.73
-        clone       : ubuntutemplate   # The VM source
+        api_user    : root@pam!ansible
+        api_password: 6e462d85-8e3a-40e6-81d9-eda6d8922559
+        api_host    : 192.168.1.20
+        clone       : ansiblenode2   # The VM source
         name        : "{{ yeppers }}"  # The target VM name
         node        : proxmox
         storage     : local-lvm
@@ -17,9 +17,9 @@
         timeout     : 500  # Note: The task can take a while. Adapt
     - name: start vm
       proxmox_kvm:
-        api_user: root@pam
-        api_password: PASSWORD
-        api_host: 10.70.7.73
+        api_user: root@pam!ansible
+        api_password: 6e462d85-8e3a-40e6-81d9-eda6d8922559
+        api_host: 192.168.1.20
         name: "{{ yeppers }}"
         node: proxmox
         state: started
