@@ -2,7 +2,10 @@
 - name: Create a Fedora 40 VM on Proxmox VE
   hosts: proxmox
   become: yes
-
+ 
+ collections:
+    - community.general  # Include the collection here
+ 
   vars:
     proxmox_host: "192.168.1.20"
     username: root
