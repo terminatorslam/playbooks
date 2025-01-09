@@ -12,7 +12,7 @@
         clone       : ansiblenode2   # The VM source
         name        : "{{ yeppers }}"  # The target VM name
         node        : proxmox
-        storage     : local-lvm
+        storage     : local-zfs
         format      : qcow2
         timeout     : 500  # Note: The task can take a while. Adapt
     - name: start vm
