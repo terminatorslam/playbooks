@@ -13,7 +13,7 @@
     api_token_id: "root@pam!ansible"
     api_token_secret: "6e462d85-8e3a-40e6-81d9-eda6d8922559"
     vmid: 101
-    node_name: "fed-node-01"
+    node_name: "proxmox"
     memory: 4096
     cores: 12
     disk_size: 30G
