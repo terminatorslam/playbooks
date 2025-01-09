@@ -6,8 +6,8 @@
     - set_fact:
         yeppers: "fedora-{{ lookup('password', '/dev/null chars=ascii_lowercase,digits length=8') }}"
     - proxmox_kvm:
-        api_user    : root@pam!ansible
-        api_password: 6e462d85-8e3a-40e6-81d9-eda6d8922559
+        api_user    : root@pam
+        api_password: dedsec
         api_host    : 192.168.1.20
         clone       : ansiblenode2   # The VM source
         name        : "{{ yeppers }}"  # The target VM name
@@ -17,8 +17,8 @@
         timeout     : 500  # Note: The task can take a while. Adapt
     - name: start vm
       proxmox_kvm:
-        api_user: root@pam!ansible
-        api_password: 6e462d85-8e3a-40e6-81d9-eda6d8922559
+        api_user: root@pam
+        api_password: dedsec
         api_host: 192.168.1.20
         name: "{{ yeppers }}"
         node: proxmox
