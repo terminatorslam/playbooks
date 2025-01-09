@@ -1,99 +1,46 @@
 ---
-- name: Automate Proxmox Instance
+- name: Create a Fedora 40 VM on Proxmox VE
   hosts: proxmox
-  gather_facts: no
   become: yes
 
   vars:
-    proxmox_url: "https://proxmox.dedsechacks.com/api2/json"
-    proxmox_username: "root@pam"
-    proxmox_password: “dedsec”
-    proxmox_node_name: "proxmox"
-    vm_ids:
-      - 100
-      - 101
-      - 102
-    template_id: "local:vztmpl/fedora-40_standard_40.0-1_amd64.tar.zst"
-    disk_size_gb: 30
-    memory_mb: 4048
-    cpu_cores: 12
-    ostype: "l2tpv3"
+    proxmox_host: "192.168.1.20"
+    username: root
+    password: dedsec
+    vmid: 101
+    node_name: "fed-node-01"
+    memory: 4096
+    cores: 12
+    disk_size: 30G
+    template_name: "fedora-40-default_20240909_amd64.tar.xz"  # Ensure this template is uploaded to Proxmox VE
+    os_type: l2m
+    start_vm: yes
 
   tasks:
-    - name: Ensure Proxmox is reachable
-      uri:
-        url: "{{ proxmox_url }}/nodes"
-        method: GET
-        user: "{{ proxmox_username }}"
-        password: "{{ proxmox_password }}"
-        validate_certs: no
-        return_content: yes
-      register: proxmox_response
+    - name: Ensure Proxmox PAM is enabled and configured for API access.
+      proxmoxve_host_info:
+        host: "{{ proxmox_host }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
 
-    - name: Fail if Proxmox is not reachable
-      fail:
-        msg: "Proxmox API not reachable"
-      when: proxmox_response.status != 200
+    - name: Create Fedora 40 VM
+      proxmoxve_vm_config:
+        host: "{{ proxmox_host }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        vmid: "{{ vmid }}"
+        node_name: "{{ node_name }}"
+        memory: "{{ memory }}"
+        cores: "{{ cores }}"
+        disk_size: "{{ disk_size }}"
+        template_name: "{{ template_name }}"
+        os_type: "{{ os_type }}"
 
-    - name: Create VMs in a loop
-      uri:
-        url: "{{ proxmox_url }}/nodes/{{ proxmox_node_name }}/qemu"
-        method: POST
-        user: "{{ proxmox_username }}"
-        password: "{{ proxmox_password }}"
-        validate_certs: no
-        body_format: json
-        body:
-          vmid: "{{ item }}"
-          name: "vm-{{ item }}"
-          template: 1
-          node: "{{ proxmox_node_name }}"
-          ostype: "{{ ostype }}"
-          memory: "{{ memory_mb }}"
-          cores: "{{ cpu_cores }}"
-          disk: "{{ disk_size_gb }}G"
-        status_code: 201
-      register: create_vm_response
-      loop: "{{ vm_ids }}"
-
-    - name: Fail if any VM creation fails
-      fail:
-        msg: "VM creation failed for VMID {{ item }}"
-      when: item.status != 201
-      loop: "{{ create_vm_response.results }}"
-
-    - name: Update packages inside the VMs
-      uri:
-        url: "{{ proxmox_url }}/nodes/{{ proxmox_node_name }}/qemu/{{ item.vmid }}/status/current"
-        method: GET
-        user: "{{ proxmox_username }}"
-        password: "{{ proxmox_password }}"
-        validate_certs: no
-        return_content: yes
-      register: vm_status
-      loop: "{{ create_vm_response.results }}"
-
-    - name: Wait for VMs to start
-      pause:
-        minutes: 5
-      until: vm_status.content | from_json.status == 'running'
-
-    - name: Update packages inside the VMs
-      uri:
-        url: "{{ proxmox_url }}/nodes/{{ proxmox_node_name }}/qemu/{{ item.vmid }}/exec/update_packages"
-        method: POST
-        user: "{{ proxmox_username }}"
-        password: "{{ proxmox_password }}"
-        validate_certs: no
-      register: update_packages_response
-      loop: "{{ create_vm_response.results }}"
-
-    - name: Fail if any package update fails
-      fail:
-        msg: "Package update failed for VMID {{ item.vmid }}"
-      when: item.status != 200
-
-    - name: Display VM statuses
-      debug:
-        var: item.content | from_json
-      loop: "{{ create_vm_response.results }}"
+    - name: Start the VM if specified
+      proxmoxve_vm_config:
+        host: "{{ proxmox_host }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        vmid: "{{ vmid }}"
+        action: start
+      when: start_vm | default(true)
