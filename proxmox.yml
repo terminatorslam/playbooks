@@ -3,7 +3,7 @@
   hosts: proxmox
   become: yes
  
- collections:
+  collections:
     - community.general  # Include the collection here
  
   vars:
